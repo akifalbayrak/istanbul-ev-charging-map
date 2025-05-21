@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import '../lib/fixLeafletIcons';
+import NearestStationCard from './NearestStationCard';
 
 interface LocationMarkerProps {
   onError: (error: string) => void;
+  onLocationFound: (lat: number, lng: number) => void;
 }
 
 // Component to handle map centering
-function LocationMarker({ onError }: LocationMarkerProps) {
+function LocationMarker({ onError, onLocationFound }: LocationMarkerProps) {
   const map = useMap();
   const [position, setPosition] = useState<L.LatLng | null>(null);
 
@@ -22,6 +24,7 @@ function LocationMarker({ onError }: LocationMarkerProps) {
           const newPos = L.latLng(latitude, longitude);
           setPosition(newPos);
           map.setView(newPos, 13);
+          onLocationFound(latitude, longitude);
         },
         (error) => {
           onError('Konum izni reddedildi veya alınamadı.');
@@ -30,7 +33,7 @@ function LocationMarker({ onError }: LocationMarkerProps) {
     } else {
       onError('Tarayıcınız konum özelliğini desteklemiyor.');
     }
-  }, [map, onError]);
+  }, [map, onError, onLocationFound]);
 
   return position ? (
     <Marker position={position}>
@@ -52,11 +55,22 @@ interface Station {
   address: string;
 }
 
-export default function MapView() {
+interface MapViewProps {
+  initialLocation?: [number, number];
+}
+
+export default function MapView({ initialLocation }: MapViewProps) {
   const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<PermissionState>('prompt');
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  useEffect(() => {
+    if (initialLocation) {
+      setUserLocation(initialLocation);
+    }
+  }, [initialLocation]);
 
   useEffect(() => {
     // Check location permission status
@@ -138,7 +152,7 @@ export default function MapView() {
       )}
 
       {/* Location Permission Request */}
-      {locationPermission === 'prompt' && !error && (
+      {locationPermission === 'prompt' && !error && !initialLocation && (
         <div className="absolute top-4 right-4 z-[1000] bg-white p-4 rounded-lg shadow-lg">
           <p className="mb-2 text-black">Konumunuza en yakın şarj istasyonlarını görmek için konum izni verin.</p>
           <button
@@ -151,8 +165,8 @@ export default function MapView() {
       )}
 
       <MapContainer
-        center={[41.0082, 28.9784]}
-        zoom={10}
+        center={initialLocation || [41.0082, 28.9784]}
+        zoom={initialLocation ? 13 : 10}
         className="w-full h-full"
         scrollWheelZoom={true}
       >
@@ -160,7 +174,12 @@ export default function MapView() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <LocationMarker onError={setError} />
+        {!initialLocation && (
+          <LocationMarker 
+            onError={setError} 
+            onLocationFound={(lat, lng) => setUserLocation([lat, lng])} 
+          />
+        )}
         {stations.map((station, index) => (
           <Marker key={index} position={station.coordinates}>
             <Popup>
@@ -172,6 +191,14 @@ export default function MapView() {
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Nearest Station Card */}
+      {userLocation && stations.length > 0 && (
+        <NearestStationCard
+          userLocation={userLocation}
+          stations={stations}
+        />
+      )}
     </div>
   );
 } 
