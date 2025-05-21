@@ -56,7 +56,7 @@ export default function LocationInput({ onError }: LocationInputProps) {
         onError('Adres bulunamadı. Lütfen tekrar deneyin.');
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch {
       onError('Adres arama sırasında bir hata oluştu.');
       setIsLoading(false);
     }
