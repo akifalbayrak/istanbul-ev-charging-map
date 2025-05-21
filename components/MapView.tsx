@@ -26,7 +26,7 @@ function LocationMarker({ onError, onLocationFound }: LocationMarkerProps) {
           map.setView(newPos, 13);
           onLocationFound(latitude, longitude);
         },
-        (error) => {
+        () => {
           onError('Konum izni reddedildi veya alınamadı.');
         }
       );
@@ -57,6 +57,16 @@ interface Station {
 
 interface MapViewProps {
   initialLocation?: [number, number];
+}
+
+interface GeoJSONFeature {
+  geometry: {
+    coordinates: [number, number];
+  };
+  properties: {
+    AD: string;
+    ADRES: string;
+  };
 }
 
 export default function MapView({ initialLocation }: MapViewProps) {
@@ -91,7 +101,7 @@ export default function MapView({ initialLocation }: MapViewProps) {
         }
         const data = await response.json();
         
-        const parsedStations = data.features.map((feature: any) => ({
+        const parsedStations = data.features.map((feature: GeoJSONFeature) => ({
           coordinates: feature.geometry.coordinates.reverse() as [number, number],
           name: feature.properties.AD,
           address: feature.properties.ADRES,
@@ -116,7 +126,7 @@ export default function MapView({ initialLocation }: MapViewProps) {
           setLocationPermission('granted');
           setError(null);
         },
-        (error) => {
+        () => {
           setLocationPermission('denied');
           setError('Konum izni reddedildi.');
         }
