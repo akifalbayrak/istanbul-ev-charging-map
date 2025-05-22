@@ -110,15 +110,26 @@ export default function Home() {
                 <p className="text-sm sm:text-base text-gray-600">Konumunuzu girin ve size en yakın şarj istasyonlarını bulun</p>
               </div>
               {error && (
-                <div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl animate-shake">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="font-semibold text-sm sm:text-base">Hata</p>
-                      <p className="text-xs sm:text-sm mt-0.5 sm:mt-1">{error}</p>
+                <div className="w-fit mx-auto my-2 sm:my-3 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 text-red-800 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl shadow-lg transform transition-all duration-300 ease-in-out hover:shadow-xl animate-fade-in-up">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="mt-0.5 sm:mt-1">
+                      <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                     </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm sm:text-base tracking-tight">Hata</p>
+                      <p className="text-xs sm:text-sm mt-1 sm:mt-1.5 leading-relaxed opacity-90">{error}</p>
+                    </div>
+                    <button 
+                      onClick={() => setError(null)} 
+                      className="text-red-400 hover:text-red-600 transition-colors duration-200 p-1 rounded-full hover:bg-red-100"
+                      aria-label="Close error message"
+                    >
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}
