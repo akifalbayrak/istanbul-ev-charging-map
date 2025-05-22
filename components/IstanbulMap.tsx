@@ -71,7 +71,6 @@ const chargingIcon = L.divIcon({
   iconSize: [12, 12],
   iconAnchor: [6, 6],
 });
-
 // Custom user location icon
 const userLocationIcon = L.divIcon({
   className: 'user-location-icon',
@@ -196,7 +195,7 @@ function ZoomControls({ onLocationUpdate, userLocation }: {
           </svg>
         )}
       </button>
-      
+
       <button
         onClick={zoomIn}
         disabled={isZoomInDisabled}
@@ -269,6 +268,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   const [nearestStation, setNearestStation] = useState<Station | null>(null);
   const [isFindingNearest, setIsFindingNearest] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   const handleLocationUpdate = (lat: number, lng: number) => {
     setUserLocation([lat, lng]);
@@ -417,10 +417,19 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   }, []);
 
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-screen relative">
+      {!isMapReady && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+            <div className="text-gray-600">Harita yükleniyor...</div>
+          </div>
+        </div>
+      )}
+      
       <MapContainer
         ref={mapRef}
-        center={[41.0082, 28.9784]} // Istanbul's center
+        center={[41.0082, 28.9784]}
         zoom={8}
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
@@ -429,6 +438,10 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         dragging={true}
         touchZoom={true}
         doubleClickZoom={true}
+        whenReady={() => {
+          setIsMapReady(true);
+          setIsLoading(false);
+        }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -483,13 +496,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         ))}
       </MapContainer>
 
-      {/* Nearest Station Card */}
-      <NearestStationCard 
-        station={nearestStation} 
-        isLoading={isFindingNearest} 
-      />
-
-      {/* Loading State */}
+      {/* Loading State for Stations */}
       {isLoading && (
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg z-[1000]">
           <div className="flex items-center space-x-1.5 sm:space-x-2">
@@ -510,6 +517,12 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           </div>
         </div>
       )}
+
+      {/* Nearest Station Card */}
+      <NearestStationCard 
+        station={nearestStation} 
+        isLoading={isFindingNearest} 
+      />
     </div>
   );
 } 
