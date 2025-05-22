@@ -46,7 +46,7 @@ export default function Home() {
         <section className="py-4 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto text-center">
             <div className="inline-block mb-3 px-4 py-1 bg-blue-100 rounded-full">
-              <span className="text-sm font-medium text-blue-800">İstanbul&apos;un En Kapsamlı Şarj İstasyonu Haritası</span>
+              <span className="text-sm font-medium text-blue-800">İstanbul'un En Kapsamlı Şarj İstasyonu Haritası</span>
             </div>
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl sm:tracking-tight lg:text-5xl">
               Elektrikli Araç Şarj İstasyonları

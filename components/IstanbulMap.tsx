@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -281,6 +281,31 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     findNearestStation(lat, lng);
   };
 
+  // Wrap findNearestStation in useCallback
+  const findNearestStation = useCallback((lat: number, lng: number) => {
+    if (stations.length === 0) return;
+    
+    setIsFindingNearest(true);
+    let minDistance = Infinity;
+    let nearest: Station | null = null;
+
+    stations.forEach(station => {
+      const dist = calculateDistance(
+        lat,
+        lng,
+        station.coordinates[0],
+        station.coordinates[1]
+      );
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearest = { ...station, distance: dist };
+      }
+    });
+
+    setNearestStation(nearest);
+    setIsFindingNearest(false);
+  }, [stations]); // Add stations as a dependency since it's used inside the callback
+
   // Add this effect to handle URL parameters
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -305,32 +330,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         }
       }
     }
-  }, [stations]);
-
-  // Add this function to find nearest station
-  const findNearestStation = (lat: number, lng: number) => {
-    if (stations.length === 0) return;
-    
-    setIsFindingNearest(true);
-    let minDistance = Infinity;
-    let nearest: Station | null = null;
-
-    stations.forEach(station => {
-      const dist = calculateDistance(
-        lat,
-        lng,
-        station.coordinates[0],
-        station.coordinates[1]
-      );
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearest = { ...station, distance: dist };
-      }
-    });
-
-    setNearestStation(nearest);
-    setIsFindingNearest(false);
-  };
+  }, [stations, findNearestStation]); // Add findNearestStation to dependencies
 
   // Update the selectedLocation effect
   useEffect(() => {
@@ -375,7 +375,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           setIsFindingNearest(false);
         });
     }
-  }, [selectedLocation, stations, findNearestStation]);
+  }, [selectedLocation, findNearestStation]); // Remove stations from dependencies since it's included in findNearestStation
 
   useEffect(() => {
     const fetchStations = async () => {
