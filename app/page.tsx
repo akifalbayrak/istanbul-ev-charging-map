@@ -27,8 +27,19 @@ export default function Home() {
 
   if (showFullMap) {
     return (
-      <main className="h-screen">
+      <main className="h-screen relative">
         <IstanbulMap selectedLocation={selectedLocation} />
+        <div className="absolute bottom-4 left-4 z-[1000]">
+          <button
+            onClick={() => setShowFullMap(false)}
+            className="flex items-center justify-center w-10 h-10 bg-white/90 hover:bg-white text-gray-800 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
+            title="Ana Sayfaya Dön"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+        </div>
       </main>
     );
   }
