@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import LocationInput from '../components/LocationInput';
 
-// Dynamically import the map component with no SSR
+// Dynamically import the map component with no SSR and proper loading state
 const IstanbulMap = dynamic(() => import('@/components/IstanbulMap'), {
   ssr: false,
   loading: () => (
     <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-gray-600">Loading map...</div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <div className="text-gray-600">Harita yükleniyor...</div>
+      </div>
     </div>
   ),
 });
@@ -18,17 +21,36 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [showFullMap, setShowFullMap] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [mapKey, setMapKey] = useState(Date.now());
 
-  const handleLocationSelect = (location: string) => {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const handleLocationSelect = useCallback((location: string) => {
     setSelectedLocation(location);
     setShowFullMap(true);
     setError(null);
-  };
+    // Generate new key when switching to full map
+    setMapKey(Date.now());
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
+        <div className="flex flex-col items-center gap-2">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          <div className="text-gray-600">Yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (showFullMap) {
     return (
       <main className="h-screen">
-        <IstanbulMap selectedLocation={selectedLocation} />
+        <IstanbulMap key={mapKey} selectedLocation={selectedLocation} />
       </main>
     );
   }
@@ -36,11 +58,11 @@ export default function Home() {
   return (
     <main className="bg-gradient-to-b from-blue-50 via-white to-white flex flex-col relative h-screen overflow-hidden">
       {/* Background Map with gradient overlay */}
-      <div className="fixed inset-0 z-0 ">
+      <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-50/30 via-white/80 to-white/90 z-10" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-100/20 via-transparent to-transparent z-10" />
         <div className="absolute inset-0 blur-[2px]">
-          <IstanbulMap />
+          {isClient && <IstanbulMap key={`background-${mapKey}`} />}
         </div>
       </div>
 
@@ -110,15 +132,26 @@ export default function Home() {
                 <p className="text-sm sm:text-base text-gray-600">Konumunuzu girin ve size en yakın şarj istasyonlarını bulun</p>
               </div>
               {error && (
-                <div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl animate-shake">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="font-semibold text-sm sm:text-base">Hata</p>
-                      <p className="text-xs sm:text-sm mt-0.5 sm:mt-1">{error}</p>
+                <div className="w-fit mx-auto my-2 sm:my-3 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 text-red-800 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl shadow-lg transform transition-all duration-300 ease-in-out hover:shadow-xl animate-fade-in-up">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="mt-0.5 sm:mt-1">
+                      <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                     </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm sm:text-base tracking-tight">Hata</p>
+                      <p className="text-xs sm:text-sm mt-1 sm:mt-1.5 leading-relaxed opacity-90">{error}</p>
+                    </div>
+                    <button 
+                      onClick={() => setError(null)} 
+                      className="text-red-400 hover:text-red-600 transition-colors duration-200 p-1 rounded-full hover:bg-red-100"
+                      aria-label="Close error message"
+                    >
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}
@@ -128,7 +161,7 @@ export default function Home() {
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  İpucu: Mahalle, semt veya ilçe adı girebilirsiniz
+                  İpucu: Mahalle, semt veya ilçe adi girebilirsiniz
                 </p>
               </div>
             </div>

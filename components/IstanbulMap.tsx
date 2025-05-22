@@ -4,8 +4,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import dynamic from 'next/dynamic';
 import NearestStationCard from './NearestStationCard';
 import { getCachedStations, setCachedStations } from '../lib/cache';
+import '../lib/fixLeafletIcons';
 
 // Istanbul's approximate boundaries - slightly expanded for a more zoomed out view
 const ISTANBUL_BOUNDS = L.latLngBounds(
@@ -263,12 +265,32 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   const mapRef = useRef<L.Map>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nearestStation, setNearestStation] = useState<Station | null>(null);
   const [isFindingNearest, setIsFindingNearest] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [mapKey, setMapKey] = useState(Date.now()); // Add unique key for map instance
+
+  // Cleanup function
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Set isClient to true when component mounts
+  useEffect(() => {
+    setIsClient(true);
+    // Generate new key when component mounts
+    setMapKey(Date.now());
+  }, []);
 
   const handleLocationUpdate = (lat: number, lng: number) => {
     setUserLocation([lat, lng]);
@@ -416,72 +438,86 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     fetchStations();
   }, []);
 
+  if (!isClient) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-gray-600">Harita yükleniyor...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-screen h-screen">
-      <MapContainer
-        ref={mapRef}
-        center={[41.0082, 28.9784]} // Istanbul's center
-        zoom={8}
-        style={{ width: '100%', height: '100%' }}
-        zoomControl={false}
-        attributionControl={false}
-        scrollWheelZoom={true}
-        dragging={true}
-        touchZoom={true}
-        doubleClickZoom={true}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-        />
-        <MapRestrictor />
-        <ZoomControls onLocationUpdate={handleLocationUpdate} userLocation={userLocation} />
-        
-        {/* User Location Marker */}
-        {userLocation && (
-          <Marker 
-            position={userLocation}
-            icon={userLocationIcon}
-          >
-            <Popup>
-              <div className="p-2 min-w-[180px] sm:min-w-[200px]">
-                <h3 className="font-bold mb-1 text-sm sm:text-base">Konumunuz</h3>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  {userLocation[0].toFixed(6)}, {userLocation[1].toFixed(6)}
-                </p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-        
-        {/* Charging Stations */}
-        {stations.map((station, index) => (
-          <Marker 
-            key={index} 
-            position={station.coordinates}
-            icon={chargingIcon}
-          >
-            <Popup>
-              <div className="p-2 min-w-[180px] sm:min-w-[200px]">
-                <h3 className="font-bold mb-1 text-sm sm:text-base text-black">{station.name}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">{station.address}</p>
-                <button
-                  onClick={() => {
-                    const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinates[0]},${station.coordinates[1]}&travelmode=driving`;
-                    window.open(url, '_blank');
-                  }}
-                  className="w-full bg-blue-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm"
-                >
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                  </svg>
-                  <span>Yol Tarifi Al</span>
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+    <div className="w-screen h-screen" ref={containerRef}>
+      {typeof window !== 'undefined' && containerRef.current && (
+        <MapContainer
+          key={mapKey}
+          ref={mapRef}
+          center={[41.0082, 28.9784]} // Istanbul's center
+          zoom={8}
+          style={{ width: '100%', height: '100%' }}
+          zoomControl={false}
+          attributionControl={false}
+          scrollWheelZoom={true}
+          dragging={true}
+          touchZoom={true}
+          doubleClickZoom={true}
+          whenReady={() => {
+            setIsLoading(false);
+          }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+          <MapRestrictor />
+          <ZoomControls onLocationUpdate={handleLocationUpdate} userLocation={userLocation} />
+          
+          {/* User Location Marker */}
+          {userLocation && (
+            <Marker 
+              position={userLocation}
+              icon={userLocationIcon}
+            >
+              <Popup>
+                <div className="p-2 min-w-[180px] sm:min-w-[200px]">
+                  <h3 className="font-bold mb-1 text-sm sm:text-base">Konumunuz</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    {userLocation[0].toFixed(6)}, {userLocation[1].toFixed(6)}
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          )}
+          
+          {/* Charging Stations */}
+          {stations.map((station, index) => (
+            <Marker 
+              key={index} 
+              position={station.coordinates}
+              icon={chargingIcon}
+            >
+              <Popup>
+                <div className="p-2 min-w-[180px] sm:min-w-[200px]">
+                  <h3 className="font-bold mb-1 text-sm sm:text-base text-black">{station.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">{station.address}</p>
+                  <button
+                    onClick={() => {
+                      const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinates[0]},${station.coordinates[1]}&travelmode=driving`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full bg-blue-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm"
+                  >
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <span>Yol Tarifi Al</span>
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      )}
 
       {/* Nearest Station Card */}
       <NearestStationCard 
