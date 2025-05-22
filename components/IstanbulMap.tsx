@@ -102,9 +102,13 @@ const userLocationIcon = L.divIcon({
 });
 
 // Custom hook for zoom controls
-function ZoomControls() {
+function ZoomControls({ onLocationUpdate, userLocation }: { 
+  onLocationUpdate: (lat: number, lng: number) => void;
+  userLocation: [number, number] | null;
+}) {
   const map = useMap();
   const [currentZoom, setCurrentZoom] = useState(map.getZoom());
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     const updateZoom = () => {
@@ -128,65 +132,6 @@ function ZoomControls() {
       map.zoomOut();
     }
   };
-
-  const isZoomInDisabled = currentZoom >= 19;
-  const isZoomOutDisabled = currentZoom <= 10;
-
-  return (
-    <div className="absolute bottom-4 right-4 z-[1000] flex flex-col space-y-2">
-      <button
-        onClick={zoomIn}
-        disabled={isZoomInDisabled}
-        className={`
-          w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
-          ${isZoomInDisabled 
-            ? 'bg-gray-100 cursor-not-allowed' 
-            : 'bg-white/90 backdrop-blur-sm hover:bg-white'
-          }
-        `}
-        aria-label="Zoom in"
-      >
-        <svg 
-          className={`w-6 h-6 ${isZoomInDisabled ? 'text-gray-400' : 'text-gray-700'}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-      </button>
-      <button
-        onClick={zoomOut}
-        disabled={isZoomOutDisabled}
-        className={`
-          w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
-          ${isZoomOutDisabled 
-            ? 'bg-gray-100 cursor-not-allowed' 
-            : 'bg-white/90 backdrop-blur-sm hover:bg-white'
-          }
-        `}
-        aria-label="Zoom out"
-      >
-        <svg 
-          className={`w-6 h-6 ${isZoomOutDisabled ? 'text-gray-400' : 'text-gray-700'}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-// Custom hook for location focus
-function LocationFocusButton({ onLocationUpdate, userLocation }: { 
-  onLocationUpdate: (lat: number, lng: number) => void;
-  userLocation: [number, number] | null;
-}) {
-  const map = useMap();
-  const [isLocating, setIsLocating] = useState(false);
 
   const focusOnLocation = () => {
     // If we already have user location, just focus on it
@@ -220,33 +165,82 @@ function LocationFocusButton({ onLocationUpdate, userLocation }: {
     );
   };
 
+  const isZoomInDisabled = currentZoom >= 19;
+  const isZoomOutDisabled = currentZoom <= 10;
+
   return (
-    <button
-      onClick={focusOnLocation}
-      disabled={isLocating}
-      className={`
-        absolute bottom-24 right-4 z-[1000] w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
-        ${isLocating 
-          ? 'bg-gray-100 cursor-not-allowed' 
-          : 'bg-white/90 backdrop-blur-sm hover:bg-white'
-        }
-      `}
-      aria-label="Konumuma odaklan"
-    >
-      {isLocating ? (
-        <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
-      ) : (
+    <div className="absolute bottom-4 right-4 z-[1000] flex flex-col space-y-2">
+       <button
+        onClick={focusOnLocation}
+        disabled={isLocating}
+        className={`
+          w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
+          ${isLocating 
+            ? 'bg-gray-100 cursor-not-allowed' 
+            : 'bg-white/90 backdrop-blur-sm hover:bg-white'
+          }
+        `}
+        aria-label="Konumuma odaklan"
+      >
+        {isLocating ? (
+          <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+        ) : (
+          <svg 
+            className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        )}
+      </button>
+      
+      <button
+        onClick={zoomIn}
+        disabled={isZoomInDisabled}
+        className={`
+          w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
+          ${isZoomInDisabled 
+            ? 'bg-gray-100 cursor-not-allowed' 
+            : 'bg-white/90 backdrop-blur-sm hover:bg-white'
+          }
+        `}
+        aria-label="Zoom in"
+      >
         <svg 
-          className="w-6 h-6 text-green-600" 
+          className={`w-5 h-5 sm:w-6 sm:h-6 ${isZoomInDisabled ? 'text-gray-400' : 'text-gray-700'}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
-      )}
-    </button>
+      </button>
+      
+      <button
+        onClick={zoomOut}
+        disabled={isZoomOutDisabled}
+        className={`
+          w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
+          ${isZoomOutDisabled 
+            ? 'bg-gray-100 cursor-not-allowed' 
+            : 'bg-white/90 backdrop-blur-sm hover:bg-white'
+          }
+        `}
+        aria-label="Zoom out"
+      >
+        <svg 
+          className={`w-5 h-5 sm:w-6 sm:h-6 ${isZoomOutDisabled ? 'text-gray-400' : 'text-gray-700'}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+        </svg>
+      </button>
+    </div>
   );
 }
 
@@ -441,8 +435,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           maxZoom={19}
         />
         <MapRestrictor />
-        <ZoomControls />
-        <LocationFocusButton onLocationUpdate={handleLocationUpdate} userLocation={userLocation} />
+        <ZoomControls onLocationUpdate={handleLocationUpdate} userLocation={userLocation} />
         
         {/* User Location Marker */}
         {userLocation && (
@@ -451,9 +444,9 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             icon={userLocationIcon}
           >
             <Popup>
-              <div className="p-2">
-                <h3 className="font-bold mb-1">Konumunuz</h3>
-                <p className="text-sm text-gray-600">
+              <div className="p-2 min-w-[180px] sm:min-w-[200px]">
+                <h3 className="font-bold mb-1 text-sm sm:text-base">Konumunuz</h3>
+                <p className="text-xs sm:text-sm text-gray-600">
                   {userLocation[0].toFixed(6)}, {userLocation[1].toFixed(6)}
                 </p>
               </div>
@@ -469,17 +462,17 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             icon={chargingIcon}
           >
             <Popup>
-              <div className="p-2 min-w-[200px]">
-                <h3 className="font-bold mb-1 text-black">{station.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{station.address}</p>
+              <div className="p-2 min-w-[180px] sm:min-w-[200px]">
+                <h3 className="font-bold mb-1 text-sm sm:text-base text-black">{station.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">{station.address}</p>
                 <button
                   onClick={() => {
                     const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinates[0]},${station.coordinates[1]}&travelmode=driving`;
                     window.open(url, '_blank');
                   }}
-                  className="w-full bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2 text-sm"
+                  className="w-full bg-blue-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                   <span>Yol Tarifi Al</span>
@@ -498,22 +491,22 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg z-[1000]">
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-            <span className="text-sm text-gray-700">Şarj istasyonları yükleniyor...</span>
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg z-[1000]">
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            <span className="text-xs sm:text-sm text-gray-700">Şarj istasyonları yükleniyor...</span>
           </div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg shadow-lg z-[1000]">
-          <div className="flex items-center space-x-2">
-            <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)]">
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-sm">{error}</span>
+            <span className="text-xs sm:text-sm">{error}</span>
           </div>
         </div>
       )}

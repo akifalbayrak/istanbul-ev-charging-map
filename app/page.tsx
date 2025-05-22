@@ -34,106 +34,107 @@ export default function Home() {
   }
 
   return (
-    <main className="bg-gray-50 flex flex-col relative">
-      {/* Background Map */}
-      <div className="fixed inset-0 z-0 opacity-30">
-        <IstanbulMap />
+    <main className="bg-gradient-to-b from-blue-50 via-white to-white flex flex-col relative h-screen overflow-hidden">
+      {/* Background Map with gradient overlay */}
+      <div className="fixed inset-0 z-0 ">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-50/30 via-white/80 to-white/90 z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-100/20 via-transparent to-transparent z-10" />
+        <div className="absolute inset-0 blur-[2px]">
+          <IstanbulMap />
+        </div>
+      </div>
+
+      {/* Animated background shapes */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute top-1/2 -right-24 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-green-200/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto relative z-10">
+      <div className="flex-1 relative z-20 overflow-y-auto">
         {/* Hero Section */}
-        <section className="py-4 px-4 sm:px-6 lg:px-8">
+        <section className="py-2 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto text-center">
-            <div className="inline-block mb-3 px-4 py-1 bg-blue-100 rounded-full">
-              <span className="text-sm font-medium text-blue-800">İstanbul&apos;un En Kapsamlı Şarj İstasyonu Haritası</span>
+            {/* Animated badge */}
+            <div className="inline-flex items-center gap-2 my-2 sm:my-3 px-4 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-300">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="text-xs sm:text-sm font-semibold text-white">İstanbul&apos;un En Kapsamlı Şarj İstasyonu Haritası</span>
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl sm:tracking-tight lg:text-5xl">
-              Elektrikli Araç Şarj İstasyonları
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600 leading-relaxed">
+
+            {/* Main heading with gradient and animation */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold py-1 sm:py-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-300 animate-gradient-x tracking-tight">
+              Şarj İstasyonu Haritası
+            </h1>
+
+            {/* Description with enhanced typography */}
+            <p className="mt-2 sm:mt-6 max-w-2xl sm:max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed px-4 sm:px-0 font-medium">
               İstanbul&apos;daki tüm elektrikli araç şarj istasyonlarını keşfedin. En yakın şarj noktasını bulun ve yolculuğunuza güvenle devam edin.
             </p>
-          </div>
-        </section>
 
-        {/* Features Section */}
-        <section className="py-4 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
-                <div className="text-blue-600 mb-4">
-                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Gerçek Zamanlı Konum</h3>
-                <p className="text-sm text-gray-600">Size en yakın şarj istasyonlarını anında bulun ve rotanızı planlayın.</p>
+            {/* Feature highlights with hover effects */}
+            <div className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-2 sm:gap-4 px-4 sm:px-0">
+              <div className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-xs sm:text-sm font-medium text-green-800">Gerçek Zamanlı Durum</span>
               </div>
-
-              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
-                <div className="text-blue-600 mb-4">
-                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Hızlı Şarj</h3>
-                <p className="text-sm text-gray-600">Hızlı şarj noktalarını kolayca filtreleyin ve şarj sürenizi optimize edin.</p>
+              <div className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-xs sm:text-sm font-medium text-purple-800">500+ İstasyon</span>
               </div>
-
-              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
-                <div className="text-blue-600 mb-4">
-                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Güvenilir Bilgi</h3>
-                <p className="text-sm text-gray-600">Güncel ve doğrulanmış şarj istasyonu bilgileriyle güvenle seyahat edin.</p>
+              <div className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-xs sm:text-sm font-medium text-orange-800">7/24 Güncel</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Search Section */}
-        <section className="py-4 px-4 sm:px-6 lg:px-8">
+        {/* Search Section with enhanced design */}
+        <section className="py-2 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 md:p-8 border border-gray-100">
+              <div className="text-center">
+                <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-300 mb-2 sm:mb-3">
                   Şarj İstasyonu Ara
                 </h2>
-                <p className="text-sm text-gray-600">Konumunuzu girin ve size en yakın şarj istasyonlarını bulun</p>
+                <p className="text-sm sm:text-base text-gray-600">Konumunuzu girin ve size en yakın şarj istasyonlarını bulun</p>
               </div>
               {error && (
-                <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="py-1">
-                      <svg className="h-6 w-6 text-red-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+                <div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl animate-shake">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     <div>
-                      <p className="font-bold">Hata</p>
-                      <p className="text-sm">{error}</p>
+                      <p className="font-semibold text-sm sm:text-base">Hata</p>
+                      <p className="text-xs sm:text-sm mt-0.5 sm:mt-1">{error}</p>
                     </div>
                   </div>
                 </div>
               )}
               <LocationInput onError={setError} onLocationSelect={handleLocationSelect} />
+              <div className="mt-4 sm:mt-6 text-center">
+                <p className="text-xs sm:text-sm text-gray-500 inline-flex items-center gap-1 px-3 py-1.5 bg-gray-50 rounded-full">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  İpucu: Mahalle, semt veya ilçe adı girebilirsiniz
+                </p>
+              </div>
             </div>
           </div>
         </section>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-white/90 backdrop-blur-sm border-t relative z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} İstanbul Şarj İstasyonları Haritası
-          </p>
-        </div>
-      </footer>
     </main>
   );
 }
