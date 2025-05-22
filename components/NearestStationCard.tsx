@@ -15,6 +15,13 @@ interface NearestStationCardProps {
 }
 
 export default function NearestStationCard({ station, isLoading }: NearestStationCardProps) {
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Reset visibility when station changes
+  useEffect(() => {
+    setIsVisible(true);
+  }, [station]);
+
   const handleNavigation = () => {
     if (!station) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinates[0]},${station.coordinates[1]}&travelmode=driving`;
@@ -32,7 +39,7 @@ export default function NearestStationCard({ station, isLoading }: NearestStatio
     );
   }
 
-  if (!station) {
+  if (!station || !isVisible) {
     return null;
   }
 
@@ -40,7 +47,18 @@ export default function NearestStationCard({ station, isLoading }: NearestStatio
     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg z-[1000] max-w-sm w-full">
       <div className="flex items-start">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">{station.name}</h3>
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">{station.name}</h3>
+            <button
+              onClick={() => setIsVisible(false)}
+              className="text-gray-500 hover:text-gray-700 transition-colors p-1 -mt-1 -mr-1"
+              aria-label="Kapat"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           <p className="text-sm text-gray-600 mb-2">{station.address}</p>
           {station.distance && (
             <p className="text-sm text-blue-600 font-medium mb-3">
