@@ -71,6 +71,10 @@ interface GeoJSONFeature {
   };
 }
 
+interface GeoJSONData {
+  features: GeoJSONFeature[];
+}
+
 // Add this utility function at the top level
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -109,7 +113,7 @@ export default function MapView({ initialLocation }: MapViewProps) {
     const fetchStations = async () => {
       try {
         // Try to get data from cache first
-        const cachedData = await getCachedStations<any>();
+        const cachedData = await getCachedStations<GeoJSONData>();
         if (cachedData) {
           const parsedStations = cachedData.features.map((feature: GeoJSONFeature) => ({
             coordinates: feature.geometry.coordinates.reverse() as [number, number],
@@ -140,7 +144,7 @@ export default function MapView({ initialLocation }: MapViewProps) {
         
         setStations(parsedStations);
         setError(null);
-      } catch (error) {
+      } catch {
         setError('Şarj istasyonları yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
       } finally {
         setIsLoading(false);

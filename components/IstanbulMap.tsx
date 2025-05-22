@@ -30,6 +30,10 @@ interface GeoJSONFeature {
   };
 }
 
+interface GeoJSONData {
+  features: GeoJSONFeature[];
+}
+
 // Custom hook to restrict map movement
 function MapRestrictor() {
   const map = useMap();
@@ -371,13 +375,13 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           setIsFindingNearest(false);
         });
     }
-  }, [selectedLocation, stations]);
+  }, [selectedLocation, stations, findNearestStation]);
 
   useEffect(() => {
     const fetchStations = async () => {
       try {
         // Try to get data from cache first
-        const cachedData = await getCachedStations<any>();
+        const cachedData = await getCachedStations<GeoJSONData>();
         if (cachedData) {
           const parsedStations = cachedData.features.map((feature: GeoJSONFeature) => ({
             coordinates: feature.geometry.coordinates.reverse() as [number, number],
@@ -408,7 +412,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         
         setStations(parsedStations);
         setError(null);
-      } catch (error) {
+      } catch {
         setError('Şarj istasyonları yüklenirken bir hata oluştu.');
       } finally {
         setIsLoading(false);
