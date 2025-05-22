@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# İstanbul Şarj İstasyonları Haritası
 
-## Getting Started
+Bu proje, İstanbul'daki elektrikli araç şarj istasyonlarının konumlarını gösteren interaktif bir harita uygulamasıdır.
 
-First, run the development server:
+## Özellikler
+
+- İstanbul'daki tüm şarj istasyonlarının harita üzerinde gösterimi
+- Konumunuza en yakın şarj istasyonunu bulma
+- Adres arama ve konum bulma
+- Google Maps ile yol tarifi alma
+- Responsive tasarım
+
+## Teknolojiler
+
+- Next.js 14
+- React
+- Leaflet (Harita)
+- Tailwind CSS
+- TypeScript
+
+## Geliştirme
+
+Projeyi lokalde çalıştırmak için:
 
 ```bash
+# Bağımlılıkları yükleyin
+npm install
+
+# Geliştirme sunucusunu başlatın
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Bu proje Vercel üzerinde deploy edilmiştir. Kendi Vercel hesabınızda deploy etmek için:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. [Vercel](https://vercel.com)'e kaydolun
+2. GitHub reponuzu Vercel'e bağlayın
+3. Import butonuna tıklayın
+4. Reponuzu seçin
+5. Deploy butonuna tıklayın
 
-## Learn More
+Veya Vercel CLI ile deploy etmek için:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Vercel CLI'ı yükleyin
+npm i -g vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Projeyi deploy edin
+vercel
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Lisans
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
