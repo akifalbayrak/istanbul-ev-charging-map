@@ -8,7 +8,7 @@ export default function BackgroundMap() {
     <div className="absolute inset-0 z-0 opacity-20">
       <MapContainer
         center={[41.0082, 28.9784]}
-        zoom={10}
+        zoom={100}
         className="w-full h-full"
         zoomControl={false}
         attributionControl={false}

@@ -4,13 +4,15 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import LocationInput from '../components/LocationInput';
 
-const BackgroundMap = dynamic(
-  () => import('@/components/BackgroundMap').then((mod) => mod.default),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
+// Dynamically import the map component with no SSR
+const IstanbulMap = dynamic(() => import('@/components/IstanbulMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-screen h-screen flex items-center justify-center bg-gray-100">
+      <div className="text-gray-600">Loading map...</div>
+    </div>
+  ),
+});
 
 export default function Home() {
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +20,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
       {/* Background Map */}
-      <BackgroundMap />
+      <IstanbulMap />
 
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-sm shadow-sm relative z-10">
