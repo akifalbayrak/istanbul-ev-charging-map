@@ -29,27 +29,3 @@ npm install
 # Geliştirme sunucusunu başlatın
 npm run dev
 ```
-
-## Deployment
-
-Bu proje Vercel üzerinde deploy edilmiştir. Kendi Vercel hesabınızda deploy etmek için:
-
-1. [Vercel](https://vercel.com)'e kaydolun
-2. GitHub reponuzu Vercel'e bağlayın
-3. Import butonuna tıklayın
-4. Reponuzu seçin
-5. Deploy butonuna tıklayın
-
-Veya Vercel CLI ile deploy etmek için:
-
-```bash
-# Vercel CLI'ı yükleyin
-npm i -g vercel
-
-# Projeyi deploy edin
-vercel
-```
-
-## Lisans
-
-MIT
