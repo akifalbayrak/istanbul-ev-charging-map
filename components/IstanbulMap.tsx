@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import NearestStationCard from './NearestStationCard';
 
 // Istanbul's approximate boundaries - slightly expanded for a more zoomed out view
 const ISTANBUL_BOUNDS = L.latLngBounds(
@@ -15,6 +16,7 @@ interface Station {
   coordinates: [number, number];
   name: string;
   address: string;
+  distance?: number;
 }
 
 interface GeoJSONFeature {
@@ -144,11 +146,31 @@ function ZoomControls() {
   );
 }
 
-export default function IstanbulMap() {
+interface IstanbulMapProps {
+  selectedLocation?: string | null;
+}
+
+// Add this utility function at the top level
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   const mapRef = useRef<L.Map>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nearestStation, setNearestStation] = useState<Station | null>(null);
+  const [isFindingNearest, setIsFindingNearest] = useState(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     const fetchStations = async () => {
@@ -176,6 +198,54 @@ export default function IstanbulMap() {
 
     fetchStations();
   }, []);
+
+  useEffect(() => {
+    if (selectedLocation && mapRef.current) {
+      setIsFindingNearest(true);
+      // Use Nominatim for geocoding
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          selectedLocation + ', Istanbul, Turkey'
+        )}&limit=1`
+      )
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            const newPos = L.latLng(parseFloat(lat), parseFloat(lon));
+            mapRef.current?.setView(newPos, 13);
+            setUserLocation([parseFloat(lat), parseFloat(lon)]);
+            
+            // Find nearest station
+            if (stations.length > 0) {
+              let minDistance = Infinity;
+              let nearest: Station | null = null;
+
+              stations.forEach(station => {
+                const dist = calculateDistance(
+                  parseFloat(lat),
+                  parseFloat(lon),
+                  station.coordinates[0],
+                  station.coordinates[1]
+                );
+                if (dist < minDistance) {
+                  minDistance = dist;
+                  nearest = { ...station, distance: dist };
+                }
+              });
+
+              setNearestStation(nearest);
+            }
+          }
+        })
+        .catch(() => {
+          setError('Konum bulunamadı.');
+        })
+        .finally(() => {
+          setIsFindingNearest(false);
+        });
+    }
+  }, [selectedLocation, stations]);
 
   return (
     <div className="w-screen h-screen">
@@ -214,6 +284,12 @@ export default function IstanbulMap() {
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Nearest Station Card */}
+      <NearestStationCard 
+        station={nearestStation} 
+        isLoading={isFindingNearest} 
+      />
 
       {/* Loading State */}
       {isLoading && (

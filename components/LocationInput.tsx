@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 
 interface LocationInputProps {
   onError: (error: string) => void;
+  onLocationSelect?: (location: string) => void;
 }
 
-export default function LocationInput({ onError }: LocationInputProps) {
+export default function LocationInput({ onError, onLocationSelect }: LocationInputProps) {
   const router = useRouter();
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +19,11 @@ export default function LocationInput({ onError }: LocationInputProps) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          router.push(`/map?lat=${latitude}&lng=${longitude}`);
+          if (onLocationSelect) {
+            onLocationSelect(`${latitude},${longitude}`);
+          } else {
+            router.push(`/map?lat=${latitude}&lng=${longitude}`);
+          }
         },
         (error) => {
           setIsLoading(false);
@@ -51,7 +56,11 @@ export default function LocationInput({ onError }: LocationInputProps) {
       
       if (data && data.length > 0) {
         const { lat, lon } = data[0];
-        router.push(`/map?lat=${lat}&lng=${lon}`);
+        if (onLocationSelect) {
+          onLocationSelect(address);
+        } else {
+          router.push(`/map?lat=${lat}&lng=${lon}`);
+        }
       } else {
         onError('Adres bulunamadı. Lütfen tekrar deneyin.');
         setIsLoading(false);
