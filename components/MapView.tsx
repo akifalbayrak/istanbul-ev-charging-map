@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import '../lib/fixLeafletIcons';
 import NearestStationCard from './NearestStationCard';
+import { getCachedStations, setCachedStations } from '../lib/cache';
 
 interface LocationMarkerProps {
   onError: (error: string) => void;
@@ -107,11 +108,29 @@ export default function MapView({ initialLocation }: MapViewProps) {
   useEffect(() => {
     const fetchStations = async () => {
       try {
+        // Try to get data from cache first
+        const cachedData = await getCachedStations<any>();
+        if (cachedData) {
+          const parsedStations = cachedData.features.map((feature: GeoJSONFeature) => ({
+            coordinates: feature.geometry.coordinates.reverse() as [number, number],
+            name: feature.properties.AD,
+            address: feature.properties.ADRES,
+          }));
+          setStations(parsedStations);
+          setError(null);
+          setIsLoading(false);
+          return;
+        }
+
+        // If no cache, fetch from API
         const response = await fetch('/api/stations');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        
+        // Cache the fetched data
+        setCachedStations(data);
         
         const parsedStations = data.features.map((feature: GeoJSONFeature) => ({
           coordinates: feature.geometry.coordinates.reverse() as [number, number],
