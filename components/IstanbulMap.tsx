@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import NearestStationCard from './NearestStationCard';
+import { getCachedStations, setCachedStations } from '../lib/cache';
 
 // Istanbul's approximate boundaries - slightly expanded for a more zoomed out view
 const ISTANBUL_BOUNDS = L.latLngBounds(
@@ -175,11 +176,29 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   useEffect(() => {
     const fetchStations = async () => {
       try {
+        // Try to get data from cache first
+        const cachedData = await getCachedStations<any>();
+        if (cachedData) {
+          const parsedStations = cachedData.features.map((feature: GeoJSONFeature) => ({
+            coordinates: feature.geometry.coordinates.reverse() as [number, number],
+            name: feature.properties.AD,
+            address: feature.properties.ADRES,
+          }));
+          setStations(parsedStations);
+          setError(null);
+          setIsLoading(false);
+          return;
+        }
+
+        // If no cache, fetch from API
         const response = await fetch('/api/stations');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        
+        // Cache the fetched data
+        setCachedStations(data);
         
         const parsedStations = data.features.map((feature: GeoJSONFeature) => ({
           coordinates: feature.geometry.coordinates.reverse() as [number, number],
