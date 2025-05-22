@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import dynamic from 'next/dynamic';
 import NearestStationCard from './NearestStationCard';
 import { getCachedStations, setCachedStations } from '../lib/cache';
 import '../lib/fixLeafletIcons';
