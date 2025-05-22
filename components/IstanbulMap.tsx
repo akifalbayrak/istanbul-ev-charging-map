@@ -173,6 +173,102 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   const [isFindingNearest, setIsFindingNearest] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
+  // Add this effect to handle URL parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const lat = params.get('lat');
+      const lng = params.get('lng');
+      const source = params.get('source');
+
+      if (lat && lng) {
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+        setUserLocation([latitude, longitude]);
+        
+        if (mapRef.current) {
+          const newPos = L.latLng(latitude, longitude);
+          mapRef.current.setView(newPos, 13);
+          
+          // If source is geolocation, immediately find nearest station
+          if (source === 'geolocation' && stations.length > 0) {
+            findNearestStation(latitude, longitude);
+          }
+        }
+      }
+    }
+  }, [stations]);
+
+  // Add this function to find nearest station
+  const findNearestStation = (lat: number, lng: number) => {
+    if (stations.length === 0) return;
+    
+    setIsFindingNearest(true);
+    let minDistance = Infinity;
+    let nearest: Station | null = null;
+
+    stations.forEach(station => {
+      const dist = calculateDistance(
+        lat,
+        lng,
+        station.coordinates[0],
+        station.coordinates[1]
+      );
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearest = { ...station, distance: dist };
+      }
+    });
+
+    setNearestStation(nearest);
+    setIsFindingNearest(false);
+  };
+
+  // Update the selectedLocation effect
+  useEffect(() => {
+    if (selectedLocation && mapRef.current) {
+      setIsFindingNearest(true);
+      
+      // Check if selectedLocation is already coordinates
+      const coords = selectedLocation.split(',');
+      if (coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
+        const lat = parseFloat(coords[0]);
+        const lng = parseFloat(coords[1]);
+        const newPos = L.latLng(lat, lng);
+        mapRef.current.setView(newPos, 13);
+        setUserLocation([lat, lng]);
+        findNearestStation(lat, lng);
+        return;
+      }
+
+      // Otherwise, use Nominatim for geocoding
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          selectedLocation + ', Istanbul, Turkey'
+        )}&limit=1`
+      )
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            const latitude = parseFloat(lat);
+            const longitude = parseFloat(lon);
+            const newPos = L.latLng(latitude, longitude);
+            mapRef.current?.setView(newPos, 13);
+            setUserLocation([latitude, longitude]);
+            findNearestStation(latitude, longitude);
+          } else {
+            setError('Konum bulunamadı.');
+            setIsFindingNearest(false);
+          }
+        })
+        .catch(() => {
+          setError('Konum arama sırasında bir hata oluştu.');
+          setIsFindingNearest(false);
+        });
+    }
+  }, [selectedLocation, stations]);
+
   useEffect(() => {
     const fetchStations = async () => {
       try {
@@ -218,54 +314,6 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     fetchStations();
   }, []);
 
-  useEffect(() => {
-    if (selectedLocation && mapRef.current) {
-      setIsFindingNearest(true);
-      // Use Nominatim for geocoding
-      fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          selectedLocation + ', Istanbul, Turkey'
-        )}&limit=1`
-      )
-        .then(response => response.json())
-        .then(data => {
-          if (data && data.length > 0) {
-            const { lat, lon } = data[0];
-            const newPos = L.latLng(parseFloat(lat), parseFloat(lon));
-            mapRef.current?.setView(newPos, 13);
-            setUserLocation([parseFloat(lat), parseFloat(lon)]);
-            
-            // Find nearest station
-            if (stations.length > 0) {
-              let minDistance = Infinity;
-              let nearest: Station | null = null;
-
-              stations.forEach(station => {
-                const dist = calculateDistance(
-                  parseFloat(lat),
-                  parseFloat(lon),
-                  station.coordinates[0],
-                  station.coordinates[1]
-                );
-                if (dist < minDistance) {
-                  minDistance = dist;
-                  nearest = { ...station, distance: dist };
-                }
-              });
-
-              setNearestStation(nearest);
-            }
-          }
-        })
-        .catch(() => {
-          setError('Konum bulunamadı.');
-        })
-        .finally(() => {
-          setIsFindingNearest(false);
-        });
-    }
-  }, [selectedLocation, stations]);
-
   return (
     <div className="w-screen h-screen">
       <MapContainer
@@ -295,9 +343,21 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             icon={chargingIcon}
           >
             <Popup>
-              <div className="p-2">
+              <div className="p-2 min-w-[200px]">
                 <h3 className="font-bold mb-1 text-black">{station.name}</h3>
-                <p className="text-sm text-gray-600">{station.address}</p>
+                <p className="text-sm text-gray-600 mb-3">{station.address}</p>
+                <button
+                  onClick={() => {
+                    const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinates[0]},${station.coordinates[1]}&travelmode=driving`;
+                    window.open(url, '_blank');
+                  }}
+                  className="w-full bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  <span>Yol Tarifi Al</span>
+                </button>
               </div>
             </Popup>
           </Marker>

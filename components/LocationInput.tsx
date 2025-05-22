@@ -19,15 +19,27 @@ export default function LocationInput({ onError, onLocationSelect }: LocationInp
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          setIsLoading(false);
           if (onLocationSelect) {
             onLocationSelect(`${latitude},${longitude}`);
           } else {
-            router.push(`/map?lat=${latitude}&lng=${longitude}`);
+            router.push(`/map?lat=${latitude}&lng=${longitude}&source=geolocation`);
           }
         },
         (error) => {
           setIsLoading(false);
-          onError('Konum izni reddedildi veya alınamadı.');
+          let errorMessage = 'Konum izni reddedildi veya alınamadı.';
+          if (error.code === error.TIMEOUT) {
+            errorMessage = 'Konum alınırken zaman aşımı oluştu.';
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            errorMessage = 'Konum bilgisi alınamadı.';
+          }
+          onError(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     } else {
