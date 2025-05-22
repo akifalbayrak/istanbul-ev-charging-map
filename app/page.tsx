@@ -27,8 +27,19 @@ export default function Home() {
 
   if (showFullMap) {
     return (
-      <main className="h-screen">
+      <main className="h-screen relative">
         <IstanbulMap selectedLocation={selectedLocation} />
+        <div className="absolute bottom-4 left-4 z-[1000]">
+          <button
+            onClick={() => setShowFullMap(false)}
+            className="flex items-center justify-center w-10 h-10 bg-white/90 hover:bg-white text-gray-800 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
+            title="Ana Sayfaya Dön"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+        </div>
       </main>
     );
   }
@@ -109,31 +120,18 @@ export default function Home() {
                 </h2>
                 <p className="text-sm sm:text-base text-gray-600">Konumunuzu girin ve size en yakın şarj istasyonlarını bulun</p>
               </div>
+              <LocationInput onError={setError} onLocationSelect={handleLocationSelect} />
               {error && (
-                <div className="w-fit mx-auto my-2 sm:my-3 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 text-red-800 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl shadow-lg transform transition-all duration-300 ease-in-out hover:shadow-xl animate-fade-in-up">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="mt-0.5 sm:mt-1">
-                      <svg className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 flex-shrink-0 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-sm sm:text-base tracking-tight">Hata</p>
-                      <p className="text-xs sm:text-sm mt-1 sm:mt-1.5 leading-relaxed opacity-90">{error}</p>
-                    </div>
-                    <button 
-                      onClick={() => setError(null)} 
-                      className="text-red-400 hover:text-red-600 transition-colors duration-200 p-1 rounded-full hover:bg-red-100"
-                      aria-label="Close error message"
-                    >
-                      <svg className="h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                <div className="mx-auto w-fit my-2 bg-red-50 text-red-700 px-4 py-2 rounded">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm">{error}</span>
                   </div>
                 </div>
               )}
-              <LocationInput onError={setError} onLocationSelect={handleLocationSelect} />
+              asdasd
               <div className="mt-4 sm:mt-6 text-center">
                 <p className="text-xs sm:text-sm text-gray-500 inline-flex items-center gap-1 px-3 py-1.5 bg-gray-50 rounded-full">
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
