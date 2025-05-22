@@ -68,6 +68,35 @@ const chargingIcon = L.divIcon({
   iconAnchor: [6, 6],
 });
 
+// Custom user location icon
+const userLocationIcon = L.divIcon({
+  className: 'user-location-icon',
+  html: `
+    <div style="
+      background-color: #22c55e;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      position: relative;
+    ">
+      <div style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 8px;
+        background-color: white;
+        border-radius: 50%;
+      "></div>
+    </div>
+  `,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
+
 // Custom hook for zoom controls
 function ZoomControls() {
   const map = useMap();
@@ -147,6 +176,76 @@ function ZoomControls() {
   );
 }
 
+// Custom hook for location focus
+function LocationFocusButton({ onLocationUpdate, userLocation }: { 
+  onLocationUpdate: (lat: number, lng: number) => void;
+  userLocation: [number, number] | null;
+}) {
+  const map = useMap();
+  const [isLocating, setIsLocating] = useState(false);
+
+  const focusOnLocation = () => {
+    // If we already have user location, just focus on it
+    if (userLocation) {
+      const [lat, lng] = userLocation;
+      const newPos = L.latLng(lat, lng);
+      map.setView(newPos, 15);
+      return;
+    }
+
+    // Otherwise get new location
+    if (!("geolocation" in navigator)) return;
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newPos = L.latLng(latitude, longitude);
+        map.setView(newPos, 15);
+        onLocationUpdate(latitude, longitude);
+        setIsLocating(false);
+      },
+      () => {
+        setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
+  return (
+    <button
+      onClick={focusOnLocation}
+      disabled={isLocating}
+      className={`
+        absolute bottom-24 right-4 z-[1000] w-10 h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
+        ${isLocating 
+          ? 'bg-gray-100 cursor-not-allowed' 
+          : 'bg-white/90 backdrop-blur-sm hover:bg-white'
+        }
+      `}
+      aria-label="Konumuma odaklan"
+    >
+      {isLocating ? (
+        <div className="animate-spin h-5 w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
+      ) : (
+        <svg 
+          className="w-6 h-6 text-green-600" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 interface IstanbulMapProps {
   selectedLocation?: string | null;
 }
@@ -172,6 +271,11 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   const [nearestStation, setNearestStation] = useState<Station | null>(null);
   const [isFindingNearest, setIsFindingNearest] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  const handleLocationUpdate = (lat: number, lng: number) => {
+    setUserLocation([lat, lng]);
+    findNearestStation(lat, lng);
+  };
 
   // Add this effect to handle URL parameters
   useEffect(() => {
@@ -334,6 +438,24 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         />
         <MapRestrictor />
         <ZoomControls />
+        <LocationFocusButton onLocationUpdate={handleLocationUpdate} userLocation={userLocation} />
+        
+        {/* User Location Marker */}
+        {userLocation && (
+          <Marker 
+            position={userLocation}
+            icon={userLocationIcon}
+          >
+            <Popup>
+              <div className="p-2">
+                <h3 className="font-bold mb-1">Konumunuz</h3>
+                <p className="text-sm text-gray-600">
+                  {userLocation[0].toFixed(6)}, {userLocation[1].toFixed(6)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
         
         {/* Charging Stations */}
         {stations.map((station, index) => (
