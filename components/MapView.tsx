@@ -53,6 +53,7 @@ interface Station {
   coordinates: [number, number];
   name: string;
   address: string;
+  distance?: number;
 }
 
 interface MapViewProps {
@@ -69,12 +70,23 @@ interface GeoJSONFeature {
   };
 }
 
+// Add this utility function at the top level
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export default function MapView({ initialLocation }: MapViewProps) {
   const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<PermissionState>('prompt');
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [nearestStation, setNearestStation] = useState<Station | null>(null);
 
   useEffect(() => {
     if (initialLocation) {
@@ -118,6 +130,29 @@ export default function MapView({ initialLocation }: MapViewProps) {
 
     fetchStations();
   }, []);
+
+  // Add this effect to calculate nearest station
+  useEffect(() => {
+    if (userLocation && stations.length > 0) {
+      let minDistance = Infinity;
+      let nearest: Station | null = null;
+
+      stations.forEach(station => {
+        const dist = calculateDistance(
+          userLocation[0],
+          userLocation[1],
+          station.coordinates[0],
+          station.coordinates[1]
+        );
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearest = { ...station, distance: dist };
+        }
+      });
+
+      setNearestStation(nearest);
+    }
+  }, [userLocation, stations]);
 
   const requestLocation = () => {
     if ("geolocation" in navigator) {
@@ -202,11 +237,11 @@ export default function MapView({ initialLocation }: MapViewProps) {
         ))}
       </MapContainer>
 
-      {/* Nearest Station Card */}
-      {userLocation && stations.length > 0 && (
+      {/* Update NearestStationCard usage */}
+      {userLocation && (
         <NearestStationCard
-          userLocation={userLocation}
-          stations={stations}
+          station={nearestStation}
+          isLoading={isLoading}
         />
       )}
     </div>
