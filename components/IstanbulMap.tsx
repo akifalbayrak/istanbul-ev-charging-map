@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, CSSProperties } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -269,6 +269,14 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   const [isFindingNearest, setIsFindingNearest] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [mapStyle] = useState<CSSProperties>({
+    transform: 'translateZ(0)',
+    WebkitTransform: 'translateZ(0)',
+    backfaceVisibility: 'hidden' as const,
+    WebkitBackfaceVisibility: 'hidden' as const,
+    perspective: 1000,
+    WebkitPerspective: 1000,
+  });
 
   const handleLocationUpdate = (lat: number, lng: number) => {
     setUserLocation([lat, lng]);
@@ -416,8 +424,21 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     fetchStations();
   }, []);
 
+  // Add Safari-specific map options
+  const mapOptions = {
+    easeLinearity: 0.35,
+    zoomAnimation: true,
+    zoomAnimationThreshold: 4,
+    markerZoomAnimation: true,
+    transform3DLimit: 8388608, // 2^23
+    preferCanvas: true, // Use canvas renderer for better performance
+  };
+
   return (
-    <div className="w-screen h-screen relative">
+    <div 
+      className="w-full h-full"
+      style={mapStyle}
+    >
       {!isMapReady && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
@@ -442,6 +463,8 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           setIsMapReady(true);
           setIsLoading(false);
         }}
+        {...mapOptions}
+        className="w-full h-full"
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { CSSProperties } from 'react';
 
 interface Station {
   coordinates: [number, number];
@@ -16,6 +17,13 @@ interface NearestStationCardProps {
 
 export default function NearestStationCard({ station, isLoading }: NearestStationCardProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const cardStyle: CSSProperties = {
+    transform: 'translateZ(0)',
+    WebkitTransform: 'translateZ(0)',
+    backfaceVisibility: 'hidden' as const,
+    WebkitBackfaceVisibility: 'hidden' as const,
+    willChange: 'transform, opacity',
+  };
 
   // Reset visibility when station changes
   useEffect(() => {
@@ -30,7 +38,10 @@ export default function NearestStationCard({ station, isLoading }: NearestStatio
 
   if (isLoading) {
     return (
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 sm:p-4 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)] sm:max-w-sm w-full">
+      <div 
+        className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 sm:p-4 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)] sm:max-w-sm w-full"
+        style={cardStyle}
+      >
         <div className="flex items-center space-x-1.5 sm:space-x-2">
           <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
           <span className="text-xs sm:text-sm text-gray-700">En yakın istasyon aranıyor...</span>
@@ -44,7 +55,10 @@ export default function NearestStationCard({ station, isLoading }: NearestStatio
   }
 
   return (
-    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 sm:p-4 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)] sm:max-w-sm w-full">
+    <div 
+      className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 sm:p-4 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)] sm:max-w-sm w-full transition-all duration-300 ease-out transform hover:scale-[1.02]"
+      style={cardStyle}
+    >
       <div className="flex items-start">
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start mb-1">
