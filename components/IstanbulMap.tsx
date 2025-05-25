@@ -13,6 +13,9 @@ const ISTANBUL_BOUNDS = L.latLngBounds(
   [41.4205, 29.6567]  // Northeast coordinates - expanded outward
 );
 
+// Istanbul's center coordinates as a LatLngTuple
+const ISTANBUL_CENTER: [number, number] = [41.0082, 28.9784];
+
 interface Station {
   coordinates: [number, number];
   name: string;
@@ -34,7 +37,7 @@ interface GeoJSONData {
   features: GeoJSONFeature[];
 }
 
-// Custom hook to restrict map movement
+// Custom hook to restrict map movement and handle out-of-bounds locations
 function MapRestrictor() {
   const map = useMap();
 
@@ -48,8 +51,22 @@ function MapRestrictor() {
     // Set initial view to show all of Istanbul
     map.fitBounds(ISTANBUL_BOUNDS);
     
-    // Disable dragging outside bounds
-    map.setMaxBounds(ISTANBUL_BOUNDS);
+    // Handle map move events to check if the center is outside Istanbul
+    const handleMapMove = () => {
+      const center = map.getCenter();
+      if (!ISTANBUL_BOUNDS.contains(center)) {
+        // If center is outside Istanbul, smoothly pan back to Istanbul center
+        map.panTo(ISTANBUL_CENTER, {
+          animate: true,
+          duration: 1
+        });
+      }
+    };
+
+    map.on('moveend', handleMapMove);
+    return () => {
+      map.off('moveend', handleMapMove);
+    };
   }, [map]);
 
   return null;
@@ -345,9 +362,19 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         const lat = parseFloat(coords[0]);
         const lng = parseFloat(coords[1]);
         const newPos = L.latLng(lat, lng);
-        mapRef.current.setView(newPos, 13);
-        setUserLocation([lat, lng]);
-        findNearestStation(lat, lng);
+        
+        // Check if the location is within Istanbul bounds
+        if (ISTANBUL_BOUNDS.contains(newPos)) {
+          mapRef.current.setView(newPos, 13);
+          setUserLocation([lat, lng]);
+          findNearestStation(lat, lng);
+        } else {
+          // If outside Istanbul, center on Istanbul and show a message
+          mapRef.current.setView(ISTANBUL_CENTER, 11);
+          setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
+          setUserLocation(ISTANBUL_CENTER);
+        }
+        setIsFindingNearest(false);
         return;
       }
 
@@ -364,20 +391,38 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             const latitude = parseFloat(lat);
             const longitude = parseFloat(lon);
             const newPos = L.latLng(latitude, longitude);
-            mapRef.current?.setView(newPos, 13);
-            setUserLocation([latitude, longitude]);
-            findNearestStation(latitude, longitude);
+            
+            // Check if the location is within Istanbul bounds
+            if (ISTANBUL_BOUNDS.contains(newPos)) {
+              mapRef.current?.setView(newPos, 13);
+              setUserLocation([latitude, longitude]);
+              findNearestStation(latitude, longitude);
+            } else {
+              // If outside Istanbul, center on Istanbul and show a message
+              mapRef.current?.setView(ISTANBUL_CENTER, 11);
+              setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
+              setUserLocation(ISTANBUL_CENTER);
+              findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
+            }
           } else {
-            setError('Konum bulunamadı.');
-            setIsFindingNearest(false);
+            // If location not found, center on Istanbul
+            mapRef.current?.setView(ISTANBUL_CENTER, 11);
+            setError('Konum bulunamadı. İstanbul merkezi gösteriliyor.');
+            setUserLocation(ISTANBUL_CENTER);
+            findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
           }
+          setIsFindingNearest(false);
         })
         .catch(() => {
           setError('Konum arama sırasında bir hata oluştu.');
           setIsFindingNearest(false);
+          // On error, center on Istanbul
+          mapRef.current?.setView(ISTANBUL_CENTER, 11);
+          setUserLocation(ISTANBUL_CENTER);
+          findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
         });
     }
-  }, [selectedLocation, findNearestStation]); // Remove stations from dependencies since it's included in findNearestStation
+  }, [selectedLocation, findNearestStation]);
 
   useEffect(() => {
     const fetchStations = async () => {
