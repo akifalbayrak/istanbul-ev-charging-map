@@ -87,3 +87,11 @@ body {
 .animate-fade-in-up {
   animation: fade-in-up 0.3s ease-out forwards;
 }
+
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+.group-hover\:pause:hover {
+  animation-play-state: paused;
+}

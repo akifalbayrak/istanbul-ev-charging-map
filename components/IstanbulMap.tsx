@@ -294,6 +294,33 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     perspective: 1000,
     WebkitPerspective: 1000,
   });
+  const errorTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Add error handling with auto-dismissal
+  const showError = useCallback((message: string | null) => {
+    // Clear any existing timeout
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    
+    setError(message);
+    
+    // Only set timeout if there's a message
+    if (message) {
+      errorTimeoutRef.current = setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleLocationUpdate = (lat: number, lng: number) => {
     setUserLocation([lat, lng]);
@@ -351,78 +378,76 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     }
   }, [stations, findNearestStation]); // Add findNearestStation to dependencies
 
-  // Update the selectedLocation effect
-  useEffect(() => {
-    if (selectedLocation && mapRef.current) {
-      setIsFindingNearest(true);
-      
-      // Check if selectedLocation is already coordinates
-      const coords = selectedLocation.split(',');
-      if (coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
-        const lat = parseFloat(coords[0]);
-        const lng = parseFloat(coords[1]);
-        const newPos = L.latLng(lat, lng);
-        
-        // Check if the location is within Istanbul bounds
-        if (ISTANBUL_BOUNDS.contains(newPos)) {
-          mapRef.current.setView(newPos, 13);
-          setUserLocation([lat, lng]);
-          findNearestStation(lat, lng);
-        } else {
-          // If outside Istanbul, center on Istanbul and show a message
-          mapRef.current.setView(ISTANBUL_CENTER, 11);
-          setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
-          setUserLocation(ISTANBUL_CENTER);
-        }
-        setIsFindingNearest(false);
-        return;
-      }
-
-      // Otherwise, use Nominatim for geocoding
-      fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          selectedLocation + ', Istanbul, Turkey'
-        )}&limit=1`
-      )
-        .then(response => response.json())
-        .then(data => {
-          if (data && data.length > 0) {
-            const { lat, lon } = data[0];
-            const latitude = parseFloat(lat);
-            const longitude = parseFloat(lon);
-            const newPos = L.latLng(latitude, longitude);
-            
-            // Check if the location is within Istanbul bounds
-            if (ISTANBUL_BOUNDS.contains(newPos)) {
-              mapRef.current?.setView(newPos, 13);
-              setUserLocation([latitude, longitude]);
-              findNearestStation(latitude, longitude);
-            } else {
-              // If outside Istanbul, center on Istanbul and show a message
-              mapRef.current?.setView(ISTANBUL_CENTER, 11);
-              setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
-              setUserLocation(ISTANBUL_CENTER);
-              findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
-            }
-          } else {
-            // If location not found, center on Istanbul
-            mapRef.current?.setView(ISTANBUL_CENTER, 11);
-            setError('Konum bulunamadı. İstanbul merkezi gösteriliyor.');
-            setUserLocation(ISTANBUL_CENTER);
-            findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
-          }
-          setIsFindingNearest(false);
-        })
-        .catch(() => {
-          setError('Konum arama sırasında bir hata oluştu.');
-          setIsFindingNearest(false);
-          // On error, center on Istanbul
-          mapRef.current?.setView(ISTANBUL_CENTER, 11);
-          setUserLocation(ISTANBUL_CENTER);
-          findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
-        });
+  const handleValidLocation = (lat: number, lng: number) => {
+    const newPos = L.latLng(lat, lng);
+    if (ISTANBUL_BOUNDS.contains(newPos)) {
+      mapRef.current!.setView(newPos, 13);
+      setUserLocation([lat, lng]);
+      findNearestStation(lat, lng);
+    } else {
+      handleOutOfBounds();
     }
-  }, [selectedLocation, findNearestStation]);
+  };
+
+  const handleOutOfBounds = () => {
+    mapRef.current!.setView(ISTANBUL_CENTER, 11);
+    setUserLocation(ISTANBUL_CENTER);
+    showError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
+    findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
+  };
+
+  const handleGeocodeFailure = (customMessage: string = 'Konum bulunamadı. İstanbul merkezi gösteriliyor.') => {
+    mapRef.current!.setView(ISTANBUL_CENTER, 11);
+    setUserLocation(ISTANBUL_CENTER);
+    showError(customMessage);
+    findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
+  };
+
+  const tryParseCoordinates = (selectedLocation: string) => {
+    const coords = selectedLocation.split(',');
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0]);
+      const lng = parseFloat(coords[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        handleValidLocation(lat, lng);
+        setIsFindingNearest(false);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    if (!selectedLocation || !mapRef.current) return;
+  
+    setIsFindingNearest(true);
+  
+    if (tryParseCoordinates(selectedLocation)) return;
+  
+    // Otherwise, geocode via Nominatim
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        selectedLocation + ', Istanbul, Turkey'
+      )}&limit=1`
+    )
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          handleValidLocation(lat, lon);
+        } else {
+          handleGeocodeFailure('Konum bulunamadı. İstanbul merkezi gösteriliyor.');
+        }
+      })
+      .catch(() => {
+        handleGeocodeFailure('Konum arama sırasında bir hata oluştu.');
+      })
+      .finally(() => {
+        setIsFindingNearest(false);
+      });
+  }, [selectedLocation, findNearestStation, showError]);
+  
 
   useEffect(() => {
     const fetchStations = async () => {
@@ -436,7 +461,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             address: feature.properties.ADRES,
           }));
           setStations(parsedStations);
-          setError(null);
+          showError(null);
           setIsLoading(false);
           return;
         }
@@ -458,16 +483,16 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         }));
         
         setStations(parsedStations);
-        setError(null);
+        showError(null);
       } catch {
-        setError('Şarj istasyonları yüklenirken bir hata oluştu.');
+        showError('Şarj istasyonları yüklenirken bir hata oluştu.');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStations();
-  }, []);
+  }, [showError]);
 
   // Add Safari-specific map options
   const mapOptions = {
@@ -576,13 +601,26 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
 
       {/* Error State */}
       {error && (
-        <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)]">
-          <div className="flex items-center space-x-1.5 sm:space-x-2">
-            <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-xs sm:text-sm">{error}</span>
+        <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)] group">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xs sm:text-sm">{error}</span>
+            </div>
+            <button
+              onClick={() => showError(null)}
+              className="p-1 hover:bg-red-200 rounded-full transition-colors"
+              aria-label="Hata mesajını kapat"
+            >
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
+          {/* Progress bar for auto-dismissal */}
+          <div className="absolute bottom-0 left-0 h-0.5 bg-red-400 rounded-b-lg transition-all duration-5000 ease-linear group-hover:pause" style={{ width: '100%', animation: 'shrink 5s linear forwards' }} />
         </div>
       )}
 

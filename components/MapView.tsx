@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import '../lib/fixLeafletIcons';
@@ -8,7 +8,7 @@ import NearestStationCard from './NearestStationCard';
 import { getCachedStations, setCachedStations } from '../lib/cache';
 
 interface LocationMarkerProps {
-  onError: (error: string) => void;
+  onError: (message: string | null) => void;
   onLocationFound: (lat: number, lng: number) => void;
 }
 
@@ -92,6 +92,24 @@ export default function MapView({ initialLocation }: MapViewProps) {
   const [locationPermission, setLocationPermission] = useState<PermissionState>('prompt');
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [nearestStation, setNearestStation] = useState<Station | null>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Add error handling with auto-dismissal
+  const showError = useCallback((message: string | null) => {
+    // Clear any existing timeout
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    
+    setError(message);
+    
+    // Only set timeout if there's a message
+    if (message) {
+      errorTimeoutRef.current = setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
+  }, []);
 
   useEffect(() => {
     if (initialLocation) {
@@ -121,7 +139,7 @@ export default function MapView({ initialLocation }: MapViewProps) {
             address: feature.properties.ADRES,
           }));
           setStations(parsedStations);
-          setError(null);
+          showError(null);
           setIsLoading(false);
           return;
         }
@@ -143,16 +161,16 @@ export default function MapView({ initialLocation }: MapViewProps) {
         }));
         
         setStations(parsedStations);
-        setError(null);
+        showError(null);
       } catch {
-        setError('Şarj istasyonları yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+        showError('Şarj istasyonları yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStations();
-  }, []);
+  }, [showError]);
 
   // Add this effect to calculate nearest station
   useEffect(() => {
@@ -182,11 +200,11 @@ export default function MapView({ initialLocation }: MapViewProps) {
       navigator.geolocation.getCurrentPosition(
         () => {
           setLocationPermission('granted');
-          setError(null);
+          showError(null);
         },
         () => {
           setLocationPermission('denied');
-          setError('Konum izni reddedildi.');
+          showError('Konum izni reddedildi.');
         }
       );
     }
@@ -204,18 +222,26 @@ export default function MapView({ initialLocation }: MapViewProps) {
     <div className="relative w-full h-full">
       {/* Error Display */}
       {error && (
-        <div className="absolute top-4 right-4 z-[1000] bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg">
-          <div className="flex items-center">
-            <div className="py-1">
-              <svg className="h-6 w-6 text-red-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="absolute top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg z-[1000] max-w-[calc(100vw-2rem)] group">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
+              <span className="text-xs sm:text-sm">{error}</span>
             </div>
-            <div>
-              <p className="font-bold">Hata</p>
-              <p className="text-sm">{error}</p>
-            </div>
+            <button
+              onClick={() => showError(null)}
+              className="p-1 hover:bg-red-200 rounded-full transition-colors"
+              aria-label="Hata mesajını kapat"
+            >
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
+          {/* Progress bar for auto-dismissal */}
+          <div className="absolute bottom-0 left-0 h-0.5 bg-red-400 rounded-b-lg transition-all duration-5000 ease-linear group-hover:pause" style={{ width: '100%', animation: 'shrink 5s linear forwards' }} />
         </div>
       )}
 
@@ -244,7 +270,7 @@ export default function MapView({ initialLocation }: MapViewProps) {
         />
         {!initialLocation && (
           <LocationMarker 
-            onError={setError} 
+            onError={showError} 
             onLocationFound={(lat, lng) => setUserLocation([lat, lng])} 
           />
         )}
