@@ -105,7 +105,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 relative z-20 overflow-y-auto">
+      <div className="flex-1 relative z-20 overflow-y-auto flex flex-col justify-evenly">
         {/* Hero Section */}
         <section className="py-2 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto text-center">
