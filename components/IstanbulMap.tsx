@@ -382,14 +382,14 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   useEffect(() => {
     if (selectedLocation && mapRef.current) {
       setIsFindingNearest(true);
-      
+
       // Check if selectedLocation is already coordinates
       const coords = selectedLocation.split(',');
       if (coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
         const lat = parseFloat(coords[0]);
         const lng = parseFloat(coords[1]);
         const newPos = L.latLng(lat, lng);
-        
+
         // Check if the location is within Istanbul bounds
         if (ISTANBUL_BOUNDS.contains(newPos)) {
           mapRef.current.setView(newPos, 13);
@@ -404,10 +404,6 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
           setUserLocation(ISTANBUL_CENTER);
         }
-
-
-
-
 
         setIsFindingNearest(false);
         return;
@@ -426,7 +422,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             const latitude = parseFloat(lat);
             const longitude = parseFloat(lon);
             const newPos = L.latLng(latitude, longitude);
-            
+
             // Check if the location is within Istanbul bounds
             if (ISTANBUL_BOUNDS.contains(newPos)) {
               mapRef.current?.setView(newPos, 13);
