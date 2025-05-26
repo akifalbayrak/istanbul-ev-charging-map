@@ -44,13 +44,13 @@ function MapRestrictor() {
   useEffect(() => {
     // Set max bounds to Istanbul
     map.setMaxBounds(ISTANBUL_BOUNDS);
-    
+
     // Set a lower minimum zoom level to allow more zooming out
     map.setMinZoom(10);
-    
+
     // Set initial view to show all of Istanbul
     map.fitBounds(ISTANBUL_BOUNDS);
-    
+
     // Handle map move events to check if the center is outside Istanbul
     const handleMapMove = () => {
       const center = map.getCenter();
@@ -118,7 +118,7 @@ const userLocationIcon = L.divIcon({
 });
 
 // Custom hook for zoom controls
-function ZoomControls({ onLocationUpdate, userLocation }: { 
+function ZoomControls({ onLocationUpdate, userLocation }: {
   onLocationUpdate: (lat: number, lng: number) => void;
   userLocation: [number, number] | null;
 }) {
@@ -186,13 +186,13 @@ function ZoomControls({ onLocationUpdate, userLocation }: {
 
   return (
     <div className="absolute bottom-4 right-4 z-[1000] flex flex-col space-y-2">
-       <button
+      <button
         onClick={focusOnLocation}
         disabled={isLocating}
         className={`
           w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
-          ${isLocating 
-            ? 'bg-gray-100 cursor-not-allowed' 
+          ${isLocating
+            ? 'bg-gray-100 cursor-not-allowed'
             : 'bg-white/90 backdrop-blur-sm hover:bg-white'
           }
         `}
@@ -201,10 +201,10 @@ function ZoomControls({ onLocationUpdate, userLocation }: {
         {isLocating ? (
           <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-green-500 border-t-transparent rounded-full"></div>
         ) : (
-          <svg 
-            className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-5 h-5 sm:w-6 sm:h-6 text-green-600"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -218,39 +218,39 @@ function ZoomControls({ onLocationUpdate, userLocation }: {
         disabled={isZoomInDisabled}
         className={`
           w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
-          ${isZoomInDisabled 
-            ? 'bg-gray-100 cursor-not-allowed' 
+          ${isZoomInDisabled
+            ? 'bg-gray-100 cursor-not-allowed'
             : 'bg-white/90 backdrop-blur-sm hover:bg-white'
           }
         `}
         aria-label="Zoom in"
       >
-        <svg 
-          className={`w-5 h-5 sm:w-6 sm:h-6 ${isZoomInDisabled ? 'text-gray-400' : 'text-gray-700'}`} 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className={`w-5 h-5 sm:w-6 sm:h-6 ${isZoomInDisabled ? 'text-gray-400' : 'text-gray-700'}`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
       </button>
-      
+
       <button
         onClick={zoomOut}
         disabled={isZoomOutDisabled}
         className={`
           w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg flex items-center justify-center transition-colors
-          ${isZoomOutDisabled 
-            ? 'bg-gray-100 cursor-not-allowed' 
+          ${isZoomOutDisabled
+            ? 'bg-gray-100 cursor-not-allowed'
             : 'bg-white/90 backdrop-blur-sm hover:bg-white'
           }
         `}
         aria-label="Zoom out"
       >
-        <svg 
-          className={`w-5 h-5 sm:w-6 sm:h-6 ${isZoomOutDisabled ? 'text-gray-400' : 'text-gray-700'}`} 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className={`w-5 h-5 sm:w-6 sm:h-6 ${isZoomOutDisabled ? 'text-gray-400' : 'text-gray-700'}`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
@@ -269,11 +269,11 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
@@ -302,9 +302,9 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
     }
-    
+
     setError(message);
-    
+
     // Only set timeout if there's a message
     if (message) {
       errorTimeoutRef.current = setTimeout(() => {
@@ -330,7 +330,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   // Wrap findNearestStation in useCallback
   const findNearestStation = useCallback((lat: number, lng: number) => {
     if (stations.length === 0) return;
-    
+
     setIsFindingNearest(true);
     let minDistance = Infinity;
     let nearest: Station | null = null;
@@ -364,11 +364,11 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         const latitude = parseFloat(lat);
         const longitude = parseFloat(lng);
         setUserLocation([latitude, longitude]);
-        
+
         if (mapRef.current) {
           const newPos = L.latLng(latitude, longitude);
           mapRef.current.setView(newPos, 13);
-          
+
           // If source is geolocation, immediately find nearest station
           if (source === 'geolocation' && stations.length > 0) {
             findNearestStation(latitude, longitude);
@@ -376,78 +376,85 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         }
       }
     }
-  }, [stations, findNearestStation]); // Add findNearestStation to dependencies
+  }, [stations, findNearestStation]);
 
-  const handleValidLocation = (lat: number, lng: number) => {
-    const newPos = L.latLng(lat, lng);
-    if (ISTANBUL_BOUNDS.contains(newPos)) {
-      mapRef.current!.setView(newPos, 13);
-      setUserLocation([lat, lng]);
-      findNearestStation(lat, lng);
-    } else {
-      handleOutOfBounds();
-    }
-  };
-
-  const handleOutOfBounds = () => {
-    mapRef.current!.setView(ISTANBUL_CENTER, 11);
-    setUserLocation(ISTANBUL_CENTER);
-    showError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
-    findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
-  };
-
-  const handleGeocodeFailure = (customMessage: string = 'Konum bulunamadı. İstanbul merkezi gösteriliyor.') => {
-    mapRef.current!.setView(ISTANBUL_CENTER, 11);
-    setUserLocation(ISTANBUL_CENTER);
-    showError(customMessage);
-    findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
-  };
-
-  const tryParseCoordinates = (selectedLocation: string) => {
-    const coords = selectedLocation.split(',');
-    if (coords.length === 2) {
-      const lat = parseFloat(coords[0]);
-      const lng = parseFloat(coords[1]);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        handleValidLocation(lat, lng);
-        setIsFindingNearest(false);
-        return true;
-      }
-    }
-    return false;
-  };
 
   useEffect(() => {
-    if (!selectedLocation || !mapRef.current) return;
-  
-    setIsFindingNearest(true);
-  
-    if (tryParseCoordinates(selectedLocation)) return;
-  
-    // Otherwise, geocode via Nominatim
-    fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        selectedLocation + ', Istanbul, Turkey'
-      )}&limit=1`
-    )
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.length > 0) {
-          const lat = parseFloat(data[0].lat);
-          const lon = parseFloat(data[0].lon);
-          handleValidLocation(lat, lon);
+    if (selectedLocation && mapRef.current) {
+      setIsFindingNearest(true);
+
+      // Check if selectedLocation is already coordinates
+      const coords = selectedLocation.split(',');
+      if (coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
+        const lat = parseFloat(coords[0]);
+        const lng = parseFloat(coords[1]);
+        const newPos = L.latLng(lat, lng);
+
+        // Check if the location is within Istanbul bounds
+        if (ISTANBUL_BOUNDS.contains(newPos)) {
+          mapRef.current.setView(newPos, 13);
+          setUserLocation([lat, lng]);
+          findNearestStation(lat, lng);
+
+
+
         } else {
-          handleGeocodeFailure('Konum bulunamadı. İstanbul merkezi gösteriliyor.');
+          // If outside Istanbul, center on Istanbul and show a message
+          mapRef.current.setView(ISTANBUL_CENTER, 11);
+          setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
+          setUserLocation(ISTANBUL_CENTER);
         }
-      })
-      .catch(() => {
-        handleGeocodeFailure('Konum arama sırasında bir hata oluştu.');
-      })
-      .finally(() => {
+
         setIsFindingNearest(false);
-      });
-  }, [selectedLocation, findNearestStation, showError]);
-  
+        return;
+      }
+
+      // Otherwise, use Nominatim for geocoding
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          selectedLocation + ', Istanbul, Turkey'
+        )}&limit=1`
+      )
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            const latitude = parseFloat(lat);
+            const longitude = parseFloat(lon);
+            const newPos = L.latLng(latitude, longitude);
+
+            // Check if the location is within Istanbul bounds
+            if (ISTANBUL_BOUNDS.contains(newPos)) {
+              mapRef.current?.setView(newPos, 13);
+              setUserLocation([latitude, longitude]);
+              findNearestStation(latitude, longitude);
+            } else {
+              // If outside Istanbul, center on Istanbul and show a message
+              mapRef.current?.setView(ISTANBUL_CENTER, 11);
+              setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
+              setUserLocation(ISTANBUL_CENTER);
+              findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
+            }
+          } else {
+            // If location not found, center on Istanbul
+            mapRef.current?.setView(ISTANBUL_CENTER, 11);
+            setError('Konum bulunamadı. İstanbul merkezi gösteriliyor.');
+            setUserLocation(ISTANBUL_CENTER);
+            findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
+          }
+          setIsFindingNearest(false);
+        })
+        .catch(() => {
+          setError('Konum arama sırasında bir hata oluştu.');
+          setIsFindingNearest(false);
+          // On error, center on Istanbul
+          mapRef.current?.setView(ISTANBUL_CENTER, 11);
+          setUserLocation(ISTANBUL_CENTER);
+          findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
+        });
+    }
+  }, [selectedLocation, findNearestStation]);
+
 
   useEffect(() => {
     const fetchStations = async () => {
@@ -472,16 +479,16 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        
+
         // Cache the fetched data
         setCachedStations(data);
-        
+
         const parsedStations = data.features.map((feature: GeoJSONFeature) => ({
           coordinates: feature.geometry.coordinates.reverse() as [number, number],
           name: feature.properties.AD,
           address: feature.properties.ADRES,
         }));
-        
+
         setStations(parsedStations);
         showError(null);
       } catch {
@@ -505,7 +512,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
   };
 
   return (
-    <div 
+    <div
       className="w-full h-full"
       style={mapStyle}
     >
@@ -517,7 +524,7 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           </div>
         </div>
       )}
-      
+
       <MapContainer
         ref={mapRef}
         center={[41.0082, 28.9784]}
@@ -542,10 +549,10 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
         />
         <MapRestrictor />
         <ZoomControls onLocationUpdate={handleLocationUpdate} userLocation={userLocation} />
-        
+
         {/* User Location Marker */}
         {userLocation && (
-          <Marker 
+          <Marker
             position={userLocation}
             icon={userLocationIcon}
           >
@@ -559,11 +566,11 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
             </Popup>
           </Marker>
         )}
-        
+
         {/* Charging Stations */}
         {stations.map((station, index) => (
-          <Marker 
-            key={index} 
+          <Marker
+            key={index}
             position={station.coordinates}
             icon={chargingIcon}
           >
@@ -625,9 +632,9 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
       )}
 
       {/* Nearest Station Card */}
-      <NearestStationCard 
-        station={nearestStation} 
-        isLoading={isFindingNearest} 
+      <NearestStationCard
+        station={nearestStation}
+        isLoading={isFindingNearest}
       />
     </div>
   );

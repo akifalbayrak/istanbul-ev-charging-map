@@ -8,10 +8,19 @@ interface LocationInputProps {
   onLocationSelect?: (location: string) => void;
 }
 
+interface Suggestion {
+  display_name: string;
+  lat: string;
+  lon: string;
+}
+
 export default function LocationInput({ onError, onLocationSelect }: LocationInputProps) {
   const router = useRouter();
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   const handleGeolocation = () => {
     setIsLoading(true);
@@ -48,6 +57,47 @@ export default function LocationInput({ onError, onLocationSelect }: LocationInp
     }
   };
 
+  const handleSuggestions = async (input: string) => {
+    if (!input.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    // Set new timer for debouncing
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            input + ', Istanbul, Turkey'
+          )}`);
+        const data = await response.json();
+        setSuggestions(data);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
+      }
+    }, 300); // 300ms debounce
+
+    setDebounceTimer(timer);
+  };
+
+  const handleSuggestionClick = (suggestion: Suggestion) => {
+    setAddress(suggestion.display_name);
+    setShowSuggestions(false);
+    if (onLocationSelect) {
+      onLocationSelect(`${suggestion.lat},${suggestion.lon}`);
+    } else {
+      router.push(`/map?lat=${suggestion.lat}&lng=${suggestion.lon}`);
+    }
+  };
+
   const handleAddressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address.trim()) {
@@ -63,9 +113,9 @@ export default function LocationInput({ onError, onLocationSelect }: LocationInp
           address + ', Istanbul, Turkey'
         )}&limit=1`
       );
-      
+
       const data = await response.json();
-      
+
       if (data && data.length > 0) {
         const { lat, lon } = data[0];
         if (onLocationSelect) {
@@ -120,7 +170,19 @@ export default function LocationInput({ onError, onLocationSelect }: LocationInp
           <input
             type="text"
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(e) => {
+              setAddress(e.target.value);
+              handleSuggestions(e.target.value);
+            }}
+            onFocus={() => {
+              if (suggestions.length > 0) {
+                setShowSuggestions(true);
+              }
+            }}
+            onBlur={() => {
+              // Delay hiding suggestions to allow for click events
+              setTimeout(() => setShowSuggestions(false), 200);
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleAddressSubmit(e);
@@ -143,9 +205,22 @@ export default function LocationInput({ onError, onLocationSelect }: LocationInp
               </svg>
             )}
           </button>
-        </div>
 
-        {/* Add the suggestions component here */}
+          {/* Suggestions dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={`${suggestion.lat}-${suggestion.lon}-${index}`}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="cursor-pointer text-black w-full px-4 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                >
+                  {suggestion.display_name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
