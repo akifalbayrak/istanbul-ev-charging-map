@@ -392,15 +392,19 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
 
         // Check if the location is within Istanbul bounds
         if (ISTANBUL_BOUNDS.contains(newPos)) {
-          mapRef.current.setView(newPos, 13);
+          // Use flyTo for smoother animation and ensure proper zoom
+          mapRef.current.flyTo(newPos, 15, {
+            duration: 1.5,
+            easeLinearity: 0.35
+          });
           setUserLocation([lat, lng]);
           findNearestStation(lat, lng);
-
-
-
         } else {
           // If outside Istanbul, center on Istanbul and show a message
-          mapRef.current.setView(ISTANBUL_CENTER, 11);
+          mapRef.current.flyTo(ISTANBUL_CENTER, 11, {
+            duration: 1.5,
+            easeLinearity: 0.35
+          });
           setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
           setUserLocation(ISTANBUL_CENTER);
         }
@@ -425,19 +429,29 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
 
             // Check if the location is within Istanbul bounds
             if (ISTANBUL_BOUNDS.contains(newPos)) {
-              mapRef.current?.setView(newPos, 13);
+              // Use flyTo for smoother animation and ensure proper zoom
+              mapRef.current?.flyTo(newPos, 15, {
+                duration: 1.5,
+                easeLinearity: 0.35
+              });
               setUserLocation([latitude, longitude]);
               findNearestStation(latitude, longitude);
             } else {
               // If outside Istanbul, center on Istanbul and show a message
-              mapRef.current?.setView(ISTANBUL_CENTER, 11);
+              mapRef.current?.flyTo(ISTANBUL_CENTER, 11, {
+                duration: 1.5,
+                easeLinearity: 0.35
+              });
               setError('Seçilen konum İstanbul sınırları dışında. İstanbul merkezi gösteriliyor.');
               setUserLocation(ISTANBUL_CENTER);
               findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
             }
           } else {
             // If location not found, center on Istanbul
-            mapRef.current?.setView(ISTANBUL_CENTER, 11);
+            mapRef.current?.flyTo(ISTANBUL_CENTER, 11, {
+              duration: 1.5,
+              easeLinearity: 0.35
+            });
             setError('Konum bulunamadı. İstanbul merkezi gösteriliyor.');
             setUserLocation(ISTANBUL_CENTER);
             findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
@@ -448,7 +462,10 @@ export default function IstanbulMap({ selectedLocation }: IstanbulMapProps) {
           setError('Konum arama sırasında bir hata oluştu.');
           setIsFindingNearest(false);
           // On error, center on Istanbul
-          mapRef.current?.setView(ISTANBUL_CENTER, 11);
+          mapRef.current?.flyTo(ISTANBUL_CENTER, 11, {
+            duration: 1.5,
+            easeLinearity: 0.35
+          });
           setUserLocation(ISTANBUL_CENTER);
           findNearestStation(ISTANBUL_CENTER[0], ISTANBUL_CENTER[1]);
         });
